@@ -120,6 +120,65 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ---- MOBILE ---- */
+@media(max-width:768px){
+  body{height:auto;min-height:100vh;overflow:auto}
+  #hdr{height:auto;flex-wrap:wrap;padding:10px 14px;gap:8px}
+  #title-inp{min-width:0;width:100%;font-size:.9rem;order:-1}
+  .hdr-sep{display:none}
+  .bo-grp{gap:3px}
+  .bo-btn{padding:4px 9px;font-size:.72rem}
+  .hdr-ml{margin-left:0;gap:6px}
+  .hdr-btn{padding:4px 10px;font-size:.72rem}
+  #body{flex-direction:column;overflow:visible;flex:none}
+  #main{overflow:auto;padding:14px 10px 80px;-webkit-overflow-scrolling:touch}
+  .bracket-row{overflow-x:auto;padding-bottom:6px}
+  .card{width:155px;padding:6px;margin:4px 14px 4px 0}
+  .card.gf{width:165px}
+  .b-col{min-width:175px!important}
+  /* Sidebar becomes bottom drawer */
+  #sidebar{
+    position:fixed;bottom:0;left:0;right:0;
+    width:100%;height:65vh;
+    border-left:none;border-top:1px solid var(--border);
+    border-radius:16px 16px 0 0;
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:100;
+    box-shadow:0 -8px 32px rgba(0,0,0,.5);
+  }
+  #sidebar.open{transform:translateY(0)}
+  #sb-hdr{cursor:pointer;border-radius:16px 16px 0 0;padding-top:8px}
+  #sb-hdr::before{content:'';display:block;width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 8px;}
+  /* FAB log toggle button */
+  #log-fab{
+    display:flex;align-items:center;justify-content:center;
+    position:fixed;bottom:18px;right:18px;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--ub);color:#fff;
+    border:none;cursor:pointer;font-size:1.3rem;
+    box-shadow:0 4px 16px rgba(59,130,246,.5);
+    z-index:101;transition:.2s;
+  }
+  #log-fab:active{transform:scale(.93)}
+  #log-fab .fab-cnt{
+    position:absolute;top:-4px;right:-4px;
+    background:#ef4444;color:#fff;
+    border-radius:50%;width:18px;height:18px;
+    font-size:.6rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* Overlay backdrop */
+  #sb-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;
+  }
+  #sb-backdrop.show{display:block}
+}
+@media(min-width:769px){
+  #log-fab{display:none}
+  #sb-backdrop{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -136,6 +195,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
     <button class="hdr-btn" id="export-btn">↓ Экспорт</button>
   </div>
 </div>
+<div id="sb-backdrop"></div>
 <div id="body">
   <div id="main">
     <div class="sec-title">Дээд Брэкет — Upper Bracket</div>
@@ -156,6 +216,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
     <div id="sb-foot"><button id="clear-btn">Бүгдийг арилгах</button></div>
   </div>
 </div>
+<button id="log-fab" aria-label="Тэмдэглэл нээх">📋<span class="fab-cnt" id="fab-cnt" style="display:none"></span></button>
 <script>
 const NAMES=['Бат','Болд','Дорж','Энх','Ганаа','Тэмүүлэн','Мөнх','Сүрэн','Анар','Нараа','Оюун','Цэцэг','Уянга','Халиун','Номин','Дэлгэр'];
 const COLORS=['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#8b5cf6','#ec4899'];
@@ -468,6 +529,27 @@ document.getElementById('clear-btn').onclick=()=>{
 };
 
 seed();render();renderLog();
+
+// Mobile sidebar toggle
+const fab=document.getElementById('log-fab');
+const sidebar=document.getElementById('sidebar');
+const backdrop=document.getElementById('sb-backdrop');
+const fabCnt=document.getElementById('fab-cnt');
+function openSidebar(){sidebar.classList.add('open');backdrop.classList.add('show');fab.style.display='none';}
+function closeSidebar(){sidebar.classList.remove('open');backdrop.classList.remove('show');if(window.innerWidth<=768)fab.style.display='flex';}
+fab.onclick=openSidebar;
+backdrop.onclick=closeSidebar;
+document.getElementById('sb-hdr').addEventListener('click',function(e){
+  if(window.innerWidth<=768&&sidebar.classList.contains('open'))closeSidebar();
+});
+// Update FAB badge whenever log changes
+const _origRenderLog=renderLog;
+renderLog=function(){
+  _origRenderLog();
+  if(fabCnt){if(log.length>0){fabCnt.textContent=log.length;fabCnt.style.display='flex';}else{fabCnt.style.display='none';}}
+};
+renderLog();
+
 </script>
 </body>
 </html>
