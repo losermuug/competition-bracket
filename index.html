@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Давхар Элиминейшн</title>
+<style>
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3a;--text:#e2e8f0;--muted:#64748b;
+  --ub:#3b82f6;--ub-bg:#0f1d35;--ub-border:#1e3a5f;
+  --lb:#f97316;--lb-bg:#1f1007;--lb-border:#4a2008;
+  --gf:#a78bfa;--gf-bg:#160f2e;--gf-border:#3b2a6e;
+  --win:#22c55e;--win-bg:#052e16;--lose:#f87171;--lose-bg:#2d0a0a;
+  --elim:#475569;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.4);
+  --font:'Inter',system-ui,sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:14px}
+
+/* HEADER */
+#hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+#title-inp{border:none;outline:none;font-size:1rem;font-weight:700;color:var(--text);background:transparent;min-width:260px;padding:4px 0;border-bottom:2px solid transparent;transition:.2s}
+#title-inp:focus{border-bottom-color:var(--ub)}
+.hdr-sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+.bo-grp{display:flex;gap:4px}
+.bo-btn{padding:5px 11px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;transition:.15s}
+.bo-btn:hover{border-color:var(--ub);color:var(--ub)}
+.bo-btn.on{background:var(--ub);border-color:var(--ub);color:#fff}
+.hdr-ml{margin-left:auto;display:flex;gap:8px}
+.hdr-btn{padding:5px 13px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;transition:.15s}
+.hdr-btn:hover{background:var(--bg)}
+.hdr-btn.danger:hover{background:#fef2f2;color:var(--lose);border-color:var(--lose)}
+
+/* LAYOUT */
+#body{display:flex;flex:1;overflow:hidden}
+#main{flex:1;overflow:auto;padding:24px}
+
+/* SECTION */
+.sec-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.bracket-row{display:flex;align-items:center;gap:0;margin-bottom:24px}
+.b-col{display:flex;flex-direction:column;justify-content:space-around;gap:0;position:relative;flex-shrink:0}
+.b-col-hdr{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;text-align:center;padding-bottom:10px;white-space:nowrap}
+.b-col-hdr.ub{color:var(--ub)}
+.b-col-hdr.lb{color:var(--lb)}
+.b-col-hdr.gf{color:var(--gf)}
+
+/* MATCH CARD */
+.card{width:180px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin:5px 20px 5px 0;padding:8px;position:relative;transition:box-shadow .2s}
+.card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.card.ub{border-color:var(--ub-border);background:var(--ub-bg)}
+.card.lb{border-color:var(--lb-border);background:var(--lb-bg)}
+.card.gf{border-color:var(--gf-border);background:var(--gf-bg);width:190px}
+.card.done-ub{border-color:var(--ub)}
+.card.done-lb{border-color:var(--lb)}
+.card.done-gf{border-color:var(--gf)}
+.divider{border:none;border-top:1px solid var(--border);margin:5px 0;opacity:.5}
+.prow{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:6px;transition:.15s}
+.prow.w{background:var(--win-bg);border-left:3px solid var(--win)}
+.prow.l{background:var(--lose-bg);border-left:3px solid var(--lose)}
+.prow.elim .pname{text-decoration:line-through;color:var(--elim)}
+.av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:#fff;flex-shrink:0}
+.pname{flex:1;font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:.1s}
+.pname:hover{color:var(--ub)}
+.pname.tbd{color:var(--elim);font-weight:400;font-style:italic;cursor:default}
+.pname.tbd:hover{color:var(--elim)}
+.sc-inp{width:30px;height:20px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:.78rem;font-weight:700;background:var(--bg);color:var(--text);outline:none;-moz-appearance:textfield}
+.sc-inp::-webkit-inner-spin-button,.sc-inp::-webkit-outer-spin-button{-webkit-appearance:none}
+.sc-inp:focus{border-color:var(--ub)}
+.sbadge{font-size:.72rem;font-weight:700;color:var(--muted);min-width:18px;text-align:center}
+.card-foot{display:flex;gap:5px;margin-top:7px}
+.cf-btn{flex:1;padding:4px 0;background:var(--ub);color:#fff;border:none;border-radius:6px;font-size:.73rem;font-weight:700;cursor:pointer;transition:.15s}
+.cf-btn:hover{background:#1d4ed8}
+.ed-btn{padding:4px 8px;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;transition:.15s}
+.ed-btn:hover{color:var(--text);border-color:var(--text)}
+.drop-lbl{position:absolute;right:-18px;top:50%;transform:translateY(-50%);font-size:.5rem;color:var(--lb);font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;pointer-events:none;opacity:.7;white-space:nowrap}
+
+/* Connector SVG */
+.conn{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+
+/* CHAMP */
+#champ{margin-top:8px}
+.champ-box{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border-radius:12px;padding:12px 22px;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.champ-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.4)}
+
+/* SIDEBAR */
+#sidebar{width:265px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column}
+#sb-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+#sb-hdr h3{font-size:.85rem;font-weight:700}
+#log-cnt{font-size:.7rem;color:var(--muted)}
+#sb-toolbar{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px}
+#sb-toolbar button{padding:4px 10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;transition:.15s}
+#sb-toolbar button:hover{background:var(--bg)}
+#del-sel-btn{color:var(--lose)!important;border-color:#fca5a5!important}
+#del-sel-btn:hover{background:#fef2f2!important}
+#log-list{flex:1;overflow-y:auto;padding:10px}
+.log-entry{border:1.5px solid var(--border);border-radius:8px;padding:8px 9px;margin-bottom:7px;cursor:pointer;transition:.15s;position:relative}
+.log-entry:hover{border-color:var(--muted)}
+.log-entry.selected{border-color:var(--ub);background:var(--ub-bg)}
+.log-entry.editing{border-color:var(--gf);background:var(--gf-bg)}
+.le-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.le-cb{width:14px;height:14px;cursor:pointer;accent-color:var(--ub)}
+.le-round{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.le-players{display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;margin-bottom:3px}
+.le-vs{color:var(--muted);font-weight:400;font-size:.7rem}
+.le-score{font-size:.82rem;font-weight:700}
+.le-time{font-size:.6rem;color:var(--elim)}
+.le-av{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.45rem;font-weight:700;color:#fff;flex-shrink:0}
+.le-edit-area{margin-top:7px;padding-top:7px;border-top:1px dashed var(--border)}
+.le-edit-area label{font-size:.66rem;color:var(--muted);display:block;margin-bottom:3px}
+.le-edit-area .sc-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.le-edit-area input{width:34px;height:22px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:.78rem;font-weight:700;background:var(--bg);color:var(--text);outline:none}
+.le-edit-area input:focus{border-color:var(--gf)}
+.le-save-btn{padding:4px 10px;background:var(--gf);color:#fff;border:none;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer}
+.le-cancel-btn{padding:4px 10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:4px}
+#sb-foot{padding:10px;border-top:1px solid var(--border)}
+#clear-btn{width:100%;padding:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;transition:.15s}
+#clear-btn:hover{background:#fef2f2;color:var(--lose);border-color:#fca5a5}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <input id="title-inp" type="text" value="Test" spellcheck="false">
+  <div class="hdr-sep"></div>
+  <div class="bo-grp">
+    <button class="bo-btn" data-bo="1">BO1</button>
+    <button class="bo-btn on" data-bo="3">BO3</button>
+    <button class="bo-btn" data-bo="5">BO5</button>
+  </div>
+  <div class="hdr-ml">
+    <button class="hdr-btn danger" id="reset-btn">↺ Дахилт</button>
+    <button class="hdr-btn" id="export-btn">↓ Экспорт</button>
+  </div>
+</div>
+<div id="body">
+  <div id="main">
+    <div class="sec-title">Дээд Брэкет — Upper Bracket</div>
+    <div class="bracket-row" id="ub-area"></div>
+    <div class="sec-title">Доод Брэкет — Lower Bracket</div>
+    <div class="bracket-row" id="lb-area"></div>
+    <div class="sec-title">Гранд Финал</div>
+    <div class="bracket-row" id="gf-area"></div>
+    <div id="champ"></div>
+  </div>
+  <div id="sidebar">
+    <div id="sb-hdr"><h3>Тэмдэглэл</h3><span id="log-cnt">0 тоглолт</span></div>
+    <div id="sb-toolbar">
+      <button id="sel-all-btn">Бүгдийг сонгох</button>
+      <button id="del-sel-btn">Сонгосныг устгах</button>
+    </div>
+    <div id="log-list"></div>
+    <div id="sb-foot"><button id="clear-btn">Бүгдийг арилгах</button></div>
+  </div>
+</div>
+<script>
+const NAMES=['Бат','Болд','Дорж','Энх','Ганаа','Тэмүүлэн','Мөнх','Сүрэн','Анар','Нараа','Оюун','Цэцэг','Уянга','Халиун','Номин','Дэлгэр'];
+const COLORS=['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#8b5cf6','#ec4899'];
+const hsh=n=>{if(!n)return 0;let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))&0xffffffff;return Math.abs(h)%COLORS.length;};
+const clr=n=>COLORS[hsh(n)];
+const ini=n=>{if(!n)return '?';const g=[...n];return(g[0]+(g[1]||'')).toUpperCase();};
+
+let boFmt=3,log=[],players=[...NAMES],editingLogId=null,selectedLogs=new Set();
+
+function em(id,round,bracket){return{id,round,bracket,p:[null,null],s:[null,null],done:false,winner:null,loser:null};}
+function initState(){
+  const S={};
+  for(let i=0;i<8;i++)S[`ub1_${i}`]=em(`ub1_${i}`,'UB R16','ub');
+  for(let i=0;i<4;i++)S[`ub2_${i}`]=em(`ub2_${i}`,'UB Дөрөвний','ub');
+  for(let i=0;i<2;i++)S[`ub3_${i}`]=em(`ub3_${i}`,'UB Хагас Финал','ub');
+  S['ub4_0']=em('ub4_0','UB Финал','ub');
+  for(let i=0;i<4;i++)S[`lb1_${i}`]=em(`lb1_${i}`,'LB R1','lb');
+  for(let i=0;i<4;i++)S[`lb2_${i}`]=em(`lb2_${i}`,'LB R2','lb');
+  for(let i=0;i<2;i++)S[`lb3_${i}`]=em(`lb3_${i}`,'LB R3','lb');
+  for(let i=0;i<2;i++)S[`lb4_${i}`]=em(`lb4_${i}`,'LB R4','lb');
+  S['lb5_0']=em('lb5_0','LB R5','lb');
+  S['lbf_0']=em('lbf_0','LB Финал','lb');
+  S['gf_0']=em('gf_0','Гранд Финал','gf');
+  return S;
+}
+let ST=initState(),elim=new Set();
+
+function seed(){players.forEach((p,i)=>{ST[`ub1_${Math.floor(i/2)}`].p[i%2]=p;});}
+
+function wDest(id){
+  if(/^ub1_/.test(id)){const i=+id.split('_')[1];return{id:`ub2_${Math.floor(i/2)}`,s:i%2};}
+  if(/^ub2_/.test(id)){const i=+id.split('_')[1];return{id:`ub3_${Math.floor(i/2)}`,s:i%2};}
+  if(/^ub3_/.test(id)){const i=+id.split('_')[1];return{id:'ub4_0',s:i};}
+  if(id==='ub4_0')return{id:'gf_0',s:0};
+  if(/^lb1_/.test(id)){const i=+id.split('_')[1];return{id:`lb2_${i}`,s:0};}
+  if(/^lb2_/.test(id)){const i=+id.split('_')[1];return{id:`lb3_${Math.floor(i/2)}`,s:i%2};}
+  if(/^lb3_/.test(id)){const i=+id.split('_')[1];return{id:`lb4_${i}`,s:0};}
+  if(/^lb4_/.test(id)){const i=+id.split('_')[1];return{id:'lb5_0',s:i};}
+  if(id==='lb5_0')return{id:'lbf_0',s:0};
+  if(id==='lbf_0')return{id:'gf_0',s:1};
+  return null;
+}
+function lDest(id){
+  if(/^ub1_/.test(id)){const i=+id.split('_')[1];return{id:`lb1_${Math.floor(i/2)}`,s:i%2};}
+  if(/^ub2_/.test(id)){const i=+id.split('_')[1];return{id:`lb2_${i}`,s:1};}
+  if(/^ub3_/.test(id)){const i=+id.split('_')[1];return{id:`lb4_${i}`,s:1};}
+  if(id==='ub4_0')return{id:'lbf_0',s:1};
+  return null;
+}
+
+function maxSc(){return boFmt===1?1:boFmt===3?2:3;}
+
+function clearSlot(mid,slot,player){
+  const m=ST[mid];if(!m)return;
+  if(m.p[slot]===player){m.p[slot]=null;invalidate(mid);}
+}
+function invalidate(mid){
+  const m=ST[mid];if(!m||!m.done)return;
+  const oldW=m.winner,oldL=m.loser;
+  m.done=false;m.winner=null;m.loser=null;m.s=[null,null];
+  if(oldW){const d=wDest(mid);if(d)clearSlot(d.id,d.s,oldW);}
+  if(oldL){const d=lDest(mid);if(d)clearSlot(d.id,d.s,oldL);else elim.delete(oldL);}
+}
+function cascade(mid){
+  const m=ST[mid];
+  const wd=wDest(mid),ld=lDest(mid);
+  if(wd&&ST[wd.id]){ST[wd.id].p[wd.s]=m.winner;invalidate(wd.id);}
+  if(ld&&ST[ld.id]){ST[ld.id].p[ld.s]=m.loser;invalidate(ld.id);}
+  else if(!ld&&m.loser)elim.add(m.loser);
+}
+function confirm(mid){
+  const m=ST[mid];
+  const s0=parseInt(document.getElementById(`s0_${mid}`).value)||0;
+  const s1=parseInt(document.getElementById(`s1_${mid}`).value)||0;
+  const mx=maxSc();
+  if(s0!==mx&&s1!==mx){alert(`Нэг тоглогч ${mx} оноо авах ёстой.`);return;}
+  if(s0>mx||s1>mx){alert(`Дээд хэмжээ: ${mx}`);return;}
+  m.s=[s0,s1];m.done=true;
+  m.winner=s0>s1?m.p[0]:m.p[1];
+  m.loser=s0>s1?m.p[1]:m.p[0];
+  cascade(mid);
+  log.push({id:Date.now()+'_'+mid,mid,round:m.round,p0:m.p[0],p1:m.p[1],s0,s1,winner:m.winner,time:new Date()});
+  render();renderLog();
+  if(mid==='gf_0'&&m.winner)showChamp(m.winner);
+}
+function editMatch(mid){
+  const m=ST[mid];
+  const oldW=m.winner,oldL=m.loser;
+  m.done=false;m.winner=null;m.loser=null;
+  if(oldW){const d=wDest(mid);if(d)clearSlot(d.id,d.s,oldW);}
+  if(oldL){const d=lDest(mid);if(d)clearSlot(d.id,d.s,oldL);else elim.delete(oldL);}
+  document.getElementById('champ').innerHTML='';
+  render();
+}
+function renameP(old){
+  const n=prompt('Шинэ нэр:',old);
+  if(!n||n===old)return;
+  const pi=players.indexOf(old);if(pi>=0)players[pi]=n;
+  Object.values(ST).forEach(m=>{
+    for(let i=0;i<2;i++)if(m.p[i]===old)m.p[i]=n;
+    if(m.winner===old)m.winner=n;if(m.loser===old)m.loser=n;
+  });
+  if(elim.has(old)){elim.delete(old);elim.add(n);}
+  log.forEach(e=>{if(e.p0===old)e.p0=n;if(e.p1===old)e.p1=n;if(e.winner===old)e.winner=n;});
+  render();renderLog();
+}
+function showChamp(name){
+  document.getElementById('champ').innerHTML=`<div class="champ-box"><div class="champ-av" style="background:${clr(name)}">${ini(name)}</div><div><div style="font-size:.7rem;opacity:.75;margin-bottom:2px">🏆 ЧЕМПИОН</div><div style="font-size:1.1rem">${name}</div></div></div>`;
+}
+
+// RENDER
+function render(){renderUB();renderLB();renderGF();}
+function mkCol(hdrtxt,hdrCls,ids,bcls){
+  const col=document.createElement('div');col.className='b-col';col.style.minWidth='200px';
+  const h=document.createElement('div');h.className=`b-col-hdr ${hdrCls}`;h.textContent=hdrtxt;col.appendChild(h);
+  // Center matches vertically by using flex column + space-around
+  const matches=document.createElement('div');
+  matches.style.cssText='display:flex;flex-direction:column;justify-content:space-around;flex:1;';
+  ids.forEach(id=>matches.appendChild(buildCard(id,bcls)));
+  col.appendChild(matches);
+  return col;
+}
+function renderUB(){
+  const a=document.getElementById('ub-area');a.innerHTML='';
+  a.appendChild(mkCol('R16 — Шуурхай 16','ub',Array.from({length:8},(_,i)=>`ub1_${i}`),'ub'));
+  a.appendChild(mkCol('Дөрөвний Финал','ub',Array.from({length:4},(_,i)=>`ub2_${i}`),'ub'));
+  a.appendChild(mkCol('Хагас Финал','ub',Array.from({length:2},(_,i)=>`ub3_${i}`),'ub'));
+  a.appendChild(mkCol('UB Финал','ub',['ub4_0'],'ub'));
+}
+function renderLB(){
+  const a=document.getElementById('lb-area');a.innerHTML='';
+  [
+    ['LB R1','lb',Array.from({length:4},(_,i)=>`lb1_${i}`)],
+    ['LB R2','lb',Array.from({length:4},(_,i)=>`lb2_${i}`)],
+    ['LB R3','lb',Array.from({length:2},(_,i)=>`lb3_${i}`)],
+    ['LB R4','lb',Array.from({length:2},(_,i)=>`lb4_${i}`)],
+    ['LB R5','lb',['lb5_0']],
+    ['LB Финал','lb',['lbf_0']],
+  ].forEach(([lbl,cls,ids])=>a.appendChild(mkCol(lbl,cls,ids,cls)));
+}
+function renderGF(){
+  const a=document.getElementById('gf-area');a.innerHTML='';
+  a.appendChild(mkCol('Гранд Финал','gf',['gf_0'],'gf'));
+}
+
+function buildCard(id,cls){
+  const m=ST[id];
+  const card=document.createElement('div');
+  card.className=`card ${cls}${m.done?' done-'+cls:''}`;
+  card.id=`card_${id}`;
+  [0,1].forEach(i=>{
+    if(i===1){card.appendChild(Object.assign(document.createElement('hr'),{className:'divider'}));}
+    const row=document.createElement('div');row.className='prow';
+    if(m.done){
+      if(m.p[i]===m.winner)row.classList.add('w');
+      else if(m.p[i]===m.loser)row.classList.add('l');
+    }
+    if(m.p[i]&&elim.has(m.p[i]))row.classList.add('elim');
+    const av=document.createElement('div');av.className='av';
+    av.style.background=clr(m.p[i]||'');av.textContent=ini(m.p[i]||'');row.appendChild(av);
+    const nm=document.createElement('span');
+    nm.className='pname'+(m.p[i]?'':' tbd');nm.textContent=m.p[i]||'TBD';
+    if(m.p[i])nm.onclick=()=>renameP(m.p[i]);
+    row.appendChild(nm);
+    if(m.done){
+      const sb=document.createElement('span');sb.className='sbadge';sb.textContent=m.s[i]??'';row.appendChild(sb);
+    } else if(m.p[0]&&m.p[1]){
+      const si=document.createElement('input');si.type='number';si.min=0;si.max=maxSc();
+      si.className='sc-inp';si.id=`s${i}_${id}`;si.value='';
+      si.oninput=()=>{const v=+si.value;if(v>maxSc())si.value=maxSc();if(v<0)si.value=0;};
+      row.appendChild(si);
+    }
+    card.appendChild(row);
+  });
+  if(!m.done&&m.p[0]&&m.p[1]){
+    const ft=document.createElement('div');ft.className='card-foot';
+    const cb=document.createElement('button');cb.className='cf-btn';cb.textContent='Батлах';
+    cb.onclick=()=>confirm(id);ft.appendChild(cb);card.appendChild(ft);
+  }
+  if(m.done){
+    const ft=document.createElement('div');ft.className='card-foot';
+    const eb=document.createElement('button');eb.className='ed-btn';eb.textContent='Засах';
+    eb.onclick=()=>editMatch(id);ft.appendChild(eb);card.appendChild(ft);
+  }
+  // Drop label for UB (not UB Final)
+  if(cls==='ub'&&id!=='ub4_0'&&id!=='ub3_0'&&id!=='ub3_1'){
+    const dl=document.createElement('span');dl.className='drop-lbl';dl.textContent='↓ LB';card.appendChild(dl);
+  }
+  return card;
+}
+
+// LOG
+function renderLog(){
+  const list=document.getElementById('log-list');
+  list.innerHTML='';
+  document.getElementById('log-cnt').textContent=log.length+' тоглолт';
+  [...log].reverse().forEach(e=>{
+    const el=document.createElement('div');
+    el.className='log-entry'+(selectedLogs.has(e.id)?' selected':'')+(editingLogId===e.id?' editing':'');
+    el.dataset.id=e.id;
+    const t=e.time;
+    const ts=`${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+    const top=document.createElement('div');top.className='le-top';
+    const cb=document.createElement('input');cb.type='checkbox';cb.className='le-cb';
+    cb.checked=selectedLogs.has(e.id);
+    cb.onchange=ev=>{ev.stopPropagation();if(cb.checked)selectedLogs.add(e.id);else selectedLogs.delete(e.id);renderLog();};
+    const rnd=document.createElement('span');rnd.className='le-round';rnd.textContent=e.round;
+    top.appendChild(cb);top.appendChild(rnd);el.appendChild(top);
+
+    const players=document.createElement('div');players.className='le-players';
+    players.innerHTML=`<span class="le-av" style="background:${clr(e.p0)}">${ini(e.p0)}</span><span>${e.p0}</span><span class="le-vs">vs</span><span>${e.p1}</span><span class="le-av" style="background:${clr(e.p1)}">${ini(e.p1)}</span>`;
+    el.appendChild(players);
+
+    const sc=document.createElement('div');sc.className='le-score';
+    sc.innerHTML=`<span style="color:${e.s0>e.s1?'var(--win)':'var(--lose)'};">${e.s0}</span> — <span style="color:${e.s1>e.s0?'var(--win)':'var(--lose)'};">${e.s1}</span> <span style="font-size:.68rem;color:var(--muted);font-weight:500">· ${e.winner} ялав</span>`;
+    el.appendChild(sc);
+
+    const tm=document.createElement('div');tm.className='le-time';tm.textContent=ts;el.appendChild(tm);
+
+    if(editingLogId===e.id){
+      const ea=document.createElement('div');ea.className='le-edit-area';
+      ea.innerHTML=`<label>Оноо засах:</label>
+      <div class="sc-row">
+        <span style="font-size:.72rem;font-weight:600">${e.p0}</span>
+        <input type="number" id="le_s0" min="0" max="${maxSc()}" value="${e.s0}" style="width:34px;height:22px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:.78rem;color:var(--text);background:var(--bg)">
+        <span style="color:var(--muted)">—</span>
+        <input type="number" id="le_s1" min="0" max="${maxSc()}" value="${e.s1}" style="width:34px;height:22px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:.78rem;color:var(--text);background:var(--bg)">
+        <span style="font-size:.72rem;font-weight:600">${e.p1}</span>
+      </div>
+      <button class="le-save-btn" id="le-save">Хадгалах</button>
+      <button class="le-cancel-btn" id="le-cancel">Болих</button>`;
+      el.appendChild(ea);
+      setTimeout(()=>{
+        const saveBtn=document.getElementById('le-save');
+        const cancelBtn=document.getElementById('le-cancel');
+        if(saveBtn)saveBtn.onclick=ev=>{ev.stopPropagation();saveLogEdit(e.id);};
+        if(cancelBtn)cancelBtn.onclick=ev=>{ev.stopPropagation();editingLogId=null;renderLog();};
+      },0);
+    } else {
+      el.ondblclick=ev=>{
+        if(ev.target.type==='checkbox')return;
+        editingLogId=e.id;renderLog();
+      };
+      el.title='Давхар товшвол засна';
+    }
+    list.appendChild(el);
+  });
+}
+
+function saveLogEdit(lid){
+  const e=log.find(x=>x.id===lid);if(!e)return;
+  const s0el=document.getElementById('le_s0');
+  const s1el=document.getElementById('le_s1');
+  if(!s0el||!s1el)return;
+  const s0=+s0el.value,s1=+s1el.value,mx=maxSc();
+  if(s0!==mx&&s1!==mx){alert(`Нэг тоглогч ${mx} авах ёстой.`);return;}
+  e.s0=s0;e.s1=s1;e.winner=s0>s1?e.p0:e.p1;
+  // Update match state if still current (done match exists)
+  const m=ST[e.mid];
+  if(m&&m.done&&m.p[0]===e.p0&&m.p[1]===e.p1){
+    const oldW=m.winner,oldL=m.loser;
+    m.s=[s0,s1];m.winner=e.winner;m.loser=s0>s1?e.p1:e.p0;
+    if(oldW!==m.winner){
+      // Re-cascade
+      const wd=wDest(e.mid);const ld=lDest(e.mid);
+      if(wd&&ST[wd.id])ST[wd.id].p[wd.s]=m.winner;
+      if(ld&&ST[ld.id])ST[ld.id].p[ld.s]=m.loser;
+      else if(!ld&&m.loser)elim.add(m.loser);
+      if(oldW)elim.delete(oldW);
+    }
+    render();
+  }
+  editingLogId=null;renderLog();
+}
+
+// Controls
+document.querySelectorAll('.bo-btn').forEach(b=>{
+  b.onclick=()=>{boFmt=+b.dataset.bo;document.querySelectorAll('.bo-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');render();};
+});
+document.getElementById('reset-btn').onclick=()=>{
+  if(!confirm('Бүх үр дүнг арилгах уу?'))return;
+  players=[...NAMES];ST=initState();elim=new Set();log=[];selectedLogs=new Set();editingLogId=null;
+  seed();document.getElementById('champ').innerHTML='';render();renderLog();
+};
+document.getElementById('export-btn').onclick=()=>{
+  let txt=`${document.getElementById('title-inp').value}\nФормат: BO${boFmt}\n${new Date().toLocaleString('mn-MN')}\n\n`;
+  players.forEach(p=>{
+    const w=log.filter(e=>e.winner===p).length;
+    const l=log.filter(e=>e.winner!==p&&(e.p0===p||e.p1===p)).length;
+    txt+=`${ST['gf_0'].winner===p?'🏆':elim.has(p)?'❌':'  '} ${p}: ${w}W/${l}L\n`;
+  });
+  txt+='\n';log.forEach((e,i)=>{txt+=`${i+1}. [${e.round}] ${e.p0} ${e.s0}-${e.s1} ${e.p1} → ${e.winner}\n`;});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='tournament.txt';a.click();
+};
+document.getElementById('sel-all-btn').onclick=()=>{
+  if(selectedLogs.size===log.length){selectedLogs=new Set();}
+  else{selectedLogs=new Set(log.map(e=>e.id));}
+  renderLog();
+};
+document.getElementById('del-sel-btn').onclick=()=>{
+  if(!selectedLogs.size)return;
+  if(!confirm(`${selectedLogs.size} тэмдэглэлийг устгах уу?`))return;
+  log=log.filter(e=>!selectedLogs.has(e.id));
+  selectedLogs=new Set();editingLogId=null;renderLog();
+};
+document.getElementById('clear-btn').onclick=()=>{
+  if(!confirm('Бүх тэмдэглэлийг арилгах уу?'))return;
+  log=[];selectedLogs=new Set();editingLogId=null;renderLog();
+};
+
+seed();render();renderLog();
+</script>
+</body>
+</html>
